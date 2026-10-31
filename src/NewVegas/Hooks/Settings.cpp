@@ -5,6 +5,14 @@ void NvrMsaaWarningTick() {
 	static bool shown = false;
 	if (!GameMSAAWarned || shown || !Player || !Player->parentCell || !InterfaceManager) return;
 	shown = true;
+	if (DxvkCompute::Available()) {
+		Logger::Log("UNOFFICIAL MSAA: the game's anti-aliasing is on (iMultiSample %d) under NVR DXVK: depth resolves to the nearest sample and the extra surface targets are multisampled too. "
+			"NVR's effects still shade one depth per pixel, so a thin halo at edges is possible. FSR upscaling stays off with MSAA.", GameMSAAWarned);
+		return;
+	}
+	Logger::Log("WARNING: the game's own anti-aliasing is on (iMultiSample %d). NVR's effects read one depth sample per pixel, which with "
+		"MSAA disagrees with the colour: speckled cloud shadows on grass, broken shadows round the player, patches on characters. Turn "
+		"Antialiasing off in the game's launcher (Options); NVR's TAA / FSR / DLSS smooth the edges instead.", GameMSAAWarned);
 	InterfaceManager->ShowMessage("NVR: turn the game's anti-aliasing off (launcher options). With it on, NVR's shadows and effects get speckled.");
 }
 
@@ -27,13 +35,8 @@ bool __fastcall ReadSettingHook(INISettingCollection* This, UInt32 edx, GameSett
 		Setting->iValue = 0;
 	else if (!strcmp(Setting->Name, "iMultiSample:Display") && Setting->iValue < 2 && TheSettingManager->SettingsMain.Main.ForceMSAA)
 		Setting->iValue = 2;
-	else if (!strcmp(Setting->Name, "iMultiSample:Display") && Setting->iValue > 0 && !TheSettingManager->SettingsMain.Main.ForceMSAA) {
-		if (!GameMSAAWarned)
-			Logger::Log("WARNING: the game's own anti-aliasing is on (iMultiSample %d). NVR's effects read one depth sample per pixel, which with "
-				"MSAA disagrees with the colour: speckled cloud shadows on grass, broken shadows round the player, patches on characters. Turn "
-				"Antialiasing off in the game's launcher (Options); NVR's TAA / FSR / DLSS smooth the edges instead.", Setting->iValue);
+	else if (!strcmp(Setting->Name, "iMultiSample:Display") && !TheSettingManager->SettingsMain.Main.ForceMSAA)
 		GameMSAAWarned = Setting->iValue;
-	}
 	else if (!strcmp(Setting->Name, "b30GrassVS:Grass") && !Setting->iValue) {
 		Logger::Log("UNOFFICIAL b30GrassVS was 0 in the game's INI (the launcher writes 0 under DXVK): read as 1, so NVR's grass shaders are used");
 		Setting->iValue = 1;

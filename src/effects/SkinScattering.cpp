@@ -255,7 +255,7 @@ void SkinScatteringEffect::BindForSkinDraw(NiD3DPixelShaderEx* PixelShader) {
 	if (FAILED(Device->GetRenderTarget(0, &Scene)) || !Scene) return;
 	D3DSURFACE_DESC SceneDesc;
 	Scene->GetDesc(&SceneDesc);
-	if (SceneDesc.MultiSampleType != D3DMULTISAMPLE_NONE) {
+	if (SceneDesc.MultiSampleType != D3DMULTISAMPLE_NONE && !DxvkCompute::Available()) {
 		Scene->Release();
 		Logger::Log("[WARNING] SkinScattering: the scene is multisampled (the game's MSAA); drawing with extra multisampled targets bound draws nothing on D3D9 drivers such as NVIDIA's, so screen-space skin scattering is off (per-pixel diffusion instead). Switch MSAA off to use it.");
 		Supported = false;
@@ -318,7 +318,7 @@ bool SkinScatteringEffect::BindForGameHighlights(NiD3DPixelShaderEx* PixelShader
 	if (FAILED(Device->GetRenderTarget(0, &Scene)) || !Scene) return false;
 	D3DSURFACE_DESC SceneDesc;
 	Scene->GetDesc(&SceneDesc);
-	if (SceneDesc.Width != TheRenderManager->width || SceneDesc.Height != TheRenderManager->height || SceneDesc.MultiSampleType != D3DMULTISAMPLE_NONE) {
+	if (SceneDesc.Width != TheRenderManager->width || SceneDesc.Height != TheRenderManager->height || (SceneDesc.MultiSampleType != D3DMULTISAMPLE_NONE && !DxvkCompute::Available())) {
 		Scene->Release();
 		return true;
 	}
