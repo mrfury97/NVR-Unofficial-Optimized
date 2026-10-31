@@ -70,9 +70,10 @@ namespace LinearScene {
 		for (DWORD i = 1; i < 4; i++) if (SUCCEEDED(d->GetRenderTarget(i, &rt[i])) && rt[i]) d->SetRenderTarget(i, nullptr);
 		static const D3DRENDERSTATETYPE kRS[] = { D3DRS_ZENABLE, D3DRS_ZWRITEENABLE, D3DRS_ALPHABLENDENABLE, D3DRS_SRCBLEND, D3DRS_DESTBLEND,
 			D3DRS_BLENDOP, D3DRS_SEPARATEALPHABLENDENABLE, D3DRS_ALPHATESTENABLE, D3DRS_STENCILENABLE, D3DRS_SCISSORTESTENABLE, D3DRS_CULLMODE,
-			D3DRS_COLORWRITEENABLE, D3DRS_FILLMODE, D3DRS_SRGBWRITEENABLE, D3DRS_FOGENABLE, D3DRS_CLIPPLANEENABLE };
+			D3DRS_COLORWRITEENABLE, D3DRS_FILLMODE, D3DRS_SRGBWRITEENABLE, D3DRS_FOGENABLE, D3DRS_CLIPPLANEENABLE, D3DRS_POINTSIZE };
+		// POINTSIZE: under the game's A2M1 alpha-to-coverage switch the MSAA quad's alpha 0 covers no samples and the conversion draws nothing.
 		const DWORD want[] = { FALSE, FALSE, msaa ? TRUE : FALSE, D3DBLEND_ONE, D3DBLEND_ONE, D3DBLENDOP_ADD, FALSE, FALSE, FALSE, FALSE, D3DCULL_NONE,
-			msaa ? 7u : 0xFu, D3DFILL_SOLID, FALSE, FALSE, 0 };
+			msaa ? 7u : 0xFu, D3DFILL_SOLID, FALSE, FALSE, 0, MAKEFOURCC('A', '2', 'M', '0') };
 		static_assert(sizeof(kRS) / sizeof(kRS[0]) == sizeof(want) / sizeof(want[0]), "one value per state");
 		DWORD saved[sizeof(kRS) / sizeof(kRS[0])];
 		for (unsigned i = 0; i < sizeof(kRS) / sizeof(kRS[0]); i++) { if (FAILED(d->GetRenderState(kRS[i], &saved[i]))) saved[i] = want[i]; if (saved[i] != want[i]) d->SetRenderState(kRS[i], want[i]); }
